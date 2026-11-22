@@ -523,8 +523,8 @@ def logo_img(w):
 
 @functools.lru_cache(None)
 def spr_outro_text():
-    a = text_block(parse_marked("RENDEZ-VOUS LE {20 DÉCEMBRE}"), font(F_BLACK, 70), 1000)
-    b = text_block([("À", False), ("GROSLAY", True)], font(F_BLACK, 70), 1000)
+    a = text_block(parse_marked("RENDEZ-VOUS LE {20 DÉCEMBRE}"), font(F_BLACK, 60), 1040)
+    b = text_block([("À", False), ("GROSLAY", True)], font(F_BLACK, 60), 1040)
     im = Image.new("RGBA", (max(a.width, b.width), a.height + b.height), (0, 0, 0, 0))
     im.alpha_composite(a, ((im.width - a.width) // 2, 0)); im.alpha_composite(b, ((im.width - b.width) // 2, a.height))
     return im
