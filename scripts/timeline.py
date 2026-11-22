@@ -54,7 +54,7 @@ PARTS = [
           gfx=[dict(type="band", t0=0.0, t1=7.6, main="TENANTS DU TITRE", sub="WINTER SERIES · 45-23 FACE À FAST IMPACT")]),
      dict(kind="video", src="SIDY TOMAR", tin=0.0, dur=6.4, amb=-20, lowres=True, kb=(1.0, 1.12), vo=True,
           delogo=(170, 988, 382, 100),
-          gfx=[dict(type="card", t0=0.0, t1=6.4, name="SIDY TOMAR", info="MVP Winter Series", instant=True),
+          gfx=[dict(type="card", t0=0.0, t1=6.4, name="SIDY", info="MVP 2025", instant=True),
                dict(type="title_top", t0=0.6, t1=5.9, main="MVP DE LA SAISON PASSÉE", sub="")])],
     # 3 — Cyril
     [dict(kind="video", src="3 ECH", tin=0.0, dur=4.2, speed=0.5, amb=-20,
