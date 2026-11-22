@@ -331,9 +331,12 @@ def build_audio(shots, dialog, zones, total):
     n = int((total + 1) * SR)
     dia = np.zeros((n, 2)); amb = np.zeros((n, 2))
     # dialog
-    for d in dialog:
+    for i, d in enumerate(dialog):
         x = load_audio(voice_norm(d["who"]), d["vin"], d["vout"] - d["vin"])
-        place(dia, fade(x, 0.015, 0.03), d["at"])
+        prev = dialog[i - 1] if i else None; nxt = dialog[i + 1] if i + 1 < len(dialog) else None
+        cin = prev and prev["who"] == d["who"] and abs(prev["vout"] - d["vin"]) < 0.01 and abs(prev["at"] + prev["vout"] - prev["vin"] - d["at"]) < 0.05
+        cout = nxt and nxt["who"] == d["who"] and abs(nxt["vin"] - d["vout"]) < 0.01 and abs(d["at"] + d["vout"] - d["vin"] - nxt["at"]) < 0.05
+        place(dia, fade(x, 0.003 if cin else 0.02, 0.003 if cout else 0.04), d["at"])
     # ambience from rushes
     for sh in shots:
         if sh["kind"] == "black" or sh.get("amb") is None:
