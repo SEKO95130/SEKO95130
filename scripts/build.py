@@ -120,7 +120,7 @@ def shot_filter(sh):
         ch = shh; cw = ch * 9 / 16
     x = min(max(cx * sw - cw / 2, 0), sw - cw)
     y = min(max(cy * shh - ch * 0.40, 0), shh - ch)
-    if z > 1.001 or abs(cw - sw) > 2:
+    if z > 1.001 or abs(cw - sw) > 2 or abs(ch - shh) > 2:
         fc.append(f"crop={even(cw)}:{even(ch)}:{even(x)}:{even(y)}")
     if info["hdr"]:
         fc.append(TONEMAP.format(w=W, h=H))
@@ -135,6 +135,8 @@ def shot_filter(sh):
     if sh.get("kb"):
         z0, z1 = sh["kb"]; d = sh["n"] / FPS
         fc.append(f"scale=w='2*trunc({W}*({z0}+({z1}-{z0})*min(t/{d},1))/2)':h=-2:eval=frame:flags=bicubic,crop={W}:{H}")
+    if sh.get("bright"):
+        fc.append(f"eq=brightness={sh['bright']}:gamma=1.12")
     if sh.get("blur"):
         fc.append("gblur=sigma=28,eq=brightness=-0.10:saturation=0.75")
     fc.append(GRADE)
@@ -655,7 +657,7 @@ def frames(gfx, subs, dips, total):
                 if a > 0: paste_c(cv, with_alpha(scaled(spr_title(g["main"], g["sub"]), s), a), W / 2, 900)
             elif ty == "title_top":
                 a, s = anim_pop(t, g["t0"], g["t1"])
-                if a > 0: paste_c(cv, with_alpha(scaled(spr_title(g["main"], g["sub"], 70), s), a), W / 2, 560)
+                if a > 0: paste_c(cv, with_alpha(scaled(spr_title(g["main"], g["sub"], 70), s), a), W / 2, g.get("y", 560))
             elif ty == "question":
                 a, s = anim_pop(t, g["t0"], g["t1"], 0.35, 0.25)
                 if a > 0: paste_c(cv, with_alpha(scaled(spr_question(g["text"]), s), a), W / 2, 880)
@@ -754,7 +756,7 @@ def main(mode):
         print("render final A..."); render(True, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL.mp4")
         print("render final B..."); render(True, gfx, subs, dips, total, f"{B}/mix_b.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL_sans_musique_Sidy_Abdou.mp4")
     else:
-        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V2_preview.mp4")
+        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V3_preview.mp4")
     print("done")
 
 
