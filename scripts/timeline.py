@@ -57,8 +57,9 @@ PARTS = [
           gfx=[dict(type="card", t0=0.0, t1=6.4, name="SIDY", info="MVP 2025", instant=True),
                dict(type="title_top", t0=0.6, t1=5.9, main="MVP DE LA SAISON PASSÉE", sub="")])],
     # 3 — Cyril
-    [dict(kind="video", src="3 ECH", tin=0.0, dur=3.0, amb=-20,
-          gfx=[dict(type="card", t0=0.3, t1=3.0, name="CYRIL", info="Poste 1-2 · Cergy N2 · 2008")]),
+    [dict(kind="video", src="3 ECH", tin=0.0, dur=1.8, amb=-20),
+     dict(kind="video", src="CYRIL RUSH", tin=0.3, dur=3.6, amb=-24, kb=(1.0, 1.06), zoom=(1.15, 0.5, 0.45),
+          gfx=[dict(type="card", t0=0.25, t1=3.6, name="CYRIL", info="Poste 1-2 · Cergy N2 · 2008")]),
      dict(kind="q", who="cyril", dur=2.4, bg_t=0.2,
           text="UNE ATTENTE POUR CE {TOURNOI}, EN TANT QUE {TENANTS DU TITRE} ?"),
      dict(kind="dialog", who="cyril", vin=6.50, vout=8.45, text="Moi, pas forcément d'attente."),
@@ -96,7 +97,9 @@ PARTS = [
      dict(kind="dialog", who="coach", vin=7.60, vout=11.48, text="On a gagné l'année dernière, il faut qu'on gagne cette année."),
      dict(kind="dialog", who="coach", vin=11.48, vout=13.30, text="Il faut qu'on prouve qu'on est la meilleure équipe du Val-d'Oise."),
      dict(kind="q", who="coach", dur=2.0, bg_t=13.8, text="DES {APPRÉHENSIONS}, APRÈS LE {TITRE} ?"),
-     dict(kind="dialog", who="coach", vin=17.35, vout=21.88, text="Je pense qu'au vu du niveau de l'année dernière, je pense qu'il va y avoir du niveau cette année."),
+     dict(kind="dialog", who="coach", vin=17.35, vout=19.85, text="Je pense qu'au vu du niveau de l'année dernière,"),
+     dict(kind="dialog", who="coach", vin=19.85, vout=21.88, text="je pense qu'il va y avoir du niveau cette année.",
+          broll=dict(src="Cergy dunk", tin=0.7, zoom=(1.22, 0.55, 0.3))),
      dict(kind="dialog", who="coach", vin=23.85, vout=25.70, text="Oui, ça va s'élever. Maintenant, j'ai des joueurs différents aussi."),
      dict(kind="dialog", who="coach", vin=26.40, vout=28.55, text="Voilà, à nous de tout donner.")],
     # 7 — Dan + Dan Tir

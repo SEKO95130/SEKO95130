@@ -21,6 +21,7 @@ F_XBOLD = "/usr/share/fonts/opentype/inter/InterDisplay-ExtraBold.otf"
 F_BOLD = "/usr/share/fonts/opentype/inter/InterDisplay-Bold.otf"
 LOGO = f"{ROOT}/brand/logo_house.png"
 DIP = 0.3  # dip-to-black between parts (0.15 out + 0.15 in)
+XF = 8  # frames of cross-dissolve between shots inside a part
 
 
 def run(cmd, **kw):
@@ -71,7 +72,7 @@ def build_timeline():
                     br = sh["broll"]
                     sh.update(src=br["src"], tin=br["tin"], zoom=br.get("zoom"), speed=br.get("speed", 1))
                 dialog.append(dict(who=who, vin=sh["vin"], vout=sh["vout"], at=t, text=sh["text"]))
-                sh["amb"] = None
+                sh["amb"] = -30  # room tone under the voice, smooths the cuts
             elif sh["kind"] == "q":
                 who = sh["who"]
                 sh.update(src=TL.RUSH[who], tin=max(0.0, sh["bg_t"] + TL.OFF[who]), blur=True,
@@ -85,8 +86,12 @@ def build_timeline():
                 gfx.append(g)
             if sh.get("vo"):
                 zones.append((t, t + n / FPS))
+            sh["part"] = pi
             shots.append(sh)
             t += n / FPS
+        part_shots = [x for x in shots if x["part"] == pi]
+        for x in part_shots[:-1]:
+            x["xf"] = True
     return shots, gfx, dialog, dips, zones, t
 
 
@@ -121,7 +126,7 @@ def shot_filter(sh):
         fc.append(TONEMAP.format(w=W, h=H))
     else:
         fc.append(f"scale={W}:{H}:flags=lanczos,format=yuv420p")
-        if sh.get("lowres"):
+        if sh.get("lowres") or sw < 1000:
             fc.append("unsharp=5:5:0.5")
     sp = sh.get("speed", 1)
     if sp != 1:
@@ -142,7 +147,7 @@ def render_shot(i, sh, crf):
     key = json.dumps({k: v for k, v in sh.items() if k not in ("gfx", "start")}, sort_keys=True, default=str) + f"crf{crf}"
     if os.path.exists(out) and os.path.exists(out + ".key") and open(out + ".key").read() == key:
         return out
-    n = sh["n"]
+    n = sh["n"] + (XF if sh.get("xf") else 0)
     enc = ["-c:v", "libx264", "-preset", "medium", "-crf", str(crf), "-pix_fmt", "yuv420p", "-x264-params", "keyint=30"]
     if sh["kind"] == "black":
         cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"color=black:s={W}x{H}:r={FPS}",
@@ -158,13 +163,47 @@ def render_shot(i, sh, crf):
     return out
 
 
+def render_part(pi, items, crf):
+    """join the shots of one part with short cross-dissolves; output length = sum of n"""
+    out = f"{B}/shots/part_{pi:02d}.mkv"
+    files = [f for f, _ in items]
+    key = "|".join(open(f + ".key").read() for f in files) + f"XF{XF}"
+    if os.path.exists(out) and os.path.exists(out + ".key") and open(out + ".key").read() == key:
+        return out
+    total_n = sum(sh["n"] for _, sh in items)
+    enc = ["-c:v", "libx264", "-preset", "medium", "-crf", str(crf), "-pix_fmt", "yuv420p", "-x264-params", "keyint=30"]
+    if len(items) == 1:
+        run(["ffmpeg", "-y", "-loglevel", "error", "-i", files[0], "-frames:v", str(total_n), "-c", "copy", out])
+    else:
+        cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+        for f in files:
+            cmd += ["-i", f]
+        fc = []; last = "[0:v]"; acc = 0
+        for k in range(len(items)):
+            fc.append(f"[{k}:v]settb=AVTB,fps={FPS},format=yuv420p[s{k}]")
+        last = "[s0]"
+        for k in range(1, len(items)):
+            acc += items[k - 1][1]["n"]
+            fc.append(f"{last}[s{k}]xfade=transition=fade:duration={XF / FPS:.4f}:offset={acc / FPS:.4f}[x{k}]")
+            last = f"[x{k}]"
+        cmd += ["-filter_complex", ";".join(fc), "-map", last, "-frames:v", str(total_n), *enc, out]
+        run(cmd)
+    open(out + ".key", "w").write(key)
+    return out
+
+
 def render_shots(shots, crf):
     with ThreadPoolExecutor(2) as ex:
         files = list(ex.map(lambda a: render_shot(a[0], a[1], crf), enumerate(shots)))
+    parts = {}
+    for f, sh in zip(files, shots):
+        parts.setdefault(sh["part"], []).append((f, sh))
+    with ThreadPoolExecutor(2) as ex:
+        pfiles = list(ex.map(lambda kv: render_part(kv[0], kv[1], crf), sorted(parts.items())))
     with open(f"{B}/shots.txt", "w") as f:
-        for p in files:
+        for p in pfiles:
             f.write(f"file '{p}'\n")
-    return files
+    return pfiles
 
 
 # ---------------------------------------------------------------- audio
@@ -336,7 +375,7 @@ def build_audio(shots, dialog, zones, total):
         prev = dialog[i - 1] if i else None; nxt = dialog[i + 1] if i + 1 < len(dialog) else None
         cin = prev and prev["who"] == d["who"] and abs(prev["vout"] - d["vin"]) < 0.01 and abs(prev["at"] + prev["vout"] - prev["vin"] - d["at"]) < 0.05
         cout = nxt and nxt["who"] == d["who"] and abs(nxt["vin"] - d["vout"]) < 0.01 and abs(d["at"] + d["vout"] - d["vin"] - nxt["at"]) < 0.05
-        place(dia, fade(x, 0.003 if cin else 0.02, 0.003 if cout else 0.04), d["at"])
+        place(dia, fade(x, 0.003 if cin else 0.05, 0.003 if cout else 0.08), d["at"])
     # ambience from rushes
     for sh in shots:
         if sh["kind"] == "black" or sh.get("amb") is None:
@@ -715,7 +754,7 @@ def main(mode):
         print("render final A..."); render(True, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL.mp4")
         print("render final B..."); render(True, gfx, subs, dips, total, f"{B}/mix_b.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL_sans_musique_Sidy_Abdou.mp4")
     else:
-        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V1_preview.mp4")
+        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V2_preview.mp4")
     print("done")
 
 
