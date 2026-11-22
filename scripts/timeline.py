@@ -1,0 +1,128 @@
+"""Timeline of the House of Basketball x Cergy interview edit.
+All times in seconds. Voice times refer to the clean voice files (voix/*.m4a).
+video_t = voice_t + OFF[who]."""
+
+RUSH = {
+    "cyril": "Cyril interview 2",
+    "geoffroy": "Geoffroy interwiew",
+    "marwin": "Marwin interview",
+    "coach": "Coach cergy",
+    "dan": "Dan",
+}
+OFF = {"cyril": -1.348, "geoffroy": -4.744, "marwin": -0.941, "coach": 0.222, "dan": 0.544}
+# speaker position in the frame (normalized x, y of the face) for punch-ins
+FACE = {
+    "cyril": (0.42, 0.50),
+    "geoffroy": (0.27, 0.34),
+    "marwin": (0.55, 0.51),
+    "coach": (0.40, 0.54),
+    "dan": (0.69, 0.51),
+}
+# zoom cycle for punch-ins (alternates on every cut)
+ZOOMS = {
+    "cyril": [1.0, 1.7, 1.35, 2.0],
+    "geoffroy": [1.0, 1.3, 1.15, 1.45],
+    "marwin": [1.0, 1.7, 2.0],
+    "coach": [1.0, 1.6, 1.3, 2.0],
+    "dan": [1.0, 1.7, 1.35],
+}
+
+GOLD_WORDS = {
+    "95", "GAGNER", "U21", "U18", "TREMPLIN", "SENIORS", "DÉFENSE", "SOUDÉS", "DUNKS",
+    "INTENSITÉ", "PLAISIR", "MENTALITÉ", "VAL-D'OISE", "NIVEAU", "AMBIANCE", "MIEUX",
+    "SEREINEMENT", "DONNER", "VISIBILITÉ", "ÎLE-DE-FRANCE", "IMPORTANTE", "CROSSES",
+    "IMPORTANT", "ÉQUIPE", "MONDE", "REPRÉSENTE", "DIFFÉRENTS", "GAGNÉ",
+}
+
+# parts: each part is a list of shots. A dip-to-black (0.3 s) is placed between parts.
+# shot kinds:
+#   black  : dur
+#   video  : src, tin, dur, speed, zoom=(z,cx,cy), kb=(z0,z1), amb (dB), delogo
+#   dialog : who, vin, vout, text, [broll={src,tin,zoom,speed}], zoom index auto
+#   q      : who, dur, text (question card on blurred interview), bg_t (voice time)
+# graphics attached to shots: "gfx": list of dicts with relative times
+
+PARTS = [
+    # 0 — logo intro
+    [dict(kind="black", dur=2.6, gfx=[dict(type="logo_big", t0=0.0, t1=2.6)], music="intro")],
+    # 1 — Interview Cergy (Maradas gym)
+    [dict(kind="video", src="INTERVIEW CERGY", tin=1.0, dur=5.6, kb=(1.0, 1.08), amb=-16,
+          gfx=[dict(type="title", t0=0.5, t1=5.2, main="INTERVIEW · CERGY", sub="CHAMPIONS DE LA WINTER SERIES")])],
+    # 2 — Win Cergy + Sidy Tomar
+    [dict(kind="video", src="WIN CERGY", tin=0.2, dur=7.6, amb=-9, lowres=True,
+          delogo=(20, 868, 360, 250),
+          gfx=[dict(type="band", t0=0.0, t1=7.6, main="TENANTS DU TITRE", sub="WINTER SERIES · 45-23 FACE À FAST IMPACT")]),
+     dict(kind="video", src="SIDY TOMAR", tin=0.0, dur=6.4, amb=-20, lowres=True, kb=(1.0, 1.12), vo=True,
+          delogo=(170, 988, 382, 100),
+          gfx=[dict(type="card", t0=0.0, t1=6.4, name="SIDY TOMAR", info="MVP Winter Series", instant=True),
+               dict(type="title_top", t0=0.6, t1=5.9, main="MVP DE LA SAISON PASSÉE", sub="")])],
+    # 3 — Cyril
+    [dict(kind="video", src="3 ECH", tin=0.0, dur=4.2, speed=0.5, amb=-20,
+          gfx=[dict(type="card", t0=0.3, t1=4.2, name="CYRIL", info="Poste 1-2 · Cergy N2 · 2008")]),
+     dict(kind="q", who="cyril", dur=2.4, bg_t=0.2,
+          text="UNE ATTENTE POUR CE {TOURNOI}, EN TANT QUE {TENANTS DU TITRE} ?"),
+     dict(kind="dialog", who="cyril", vin=6.62, vout=7.98, text="Moi, pas forcément d'attente."),
+     dict(kind="dialog", who="cyril", vin=8.42, vout=12.05, text="L'année dernière, c'était bien. J'ai juste envie que ce soit la même chose que l'année dernière."),
+     dict(kind="dialog", who="cyril", vin=12.62, vout=14.32, text="Il y avait beaucoup de monde, beaucoup d'ambiance, du niveau.",
+          broll=dict(src="3 ECH", tin=3.0, zoom=(1.4, 0.5, 0.55))),
+     dict(kind="dialog", who="cyril", vin=16.86, vout=18.32, text="Surtout, c'est dans le 95, donc ça représente."),
+     dict(kind="dialog", who="cyril", vin=20.70, vout=22.86, text="J'ai envie que ça refasse la même chose, voire mieux."),
+     dict(kind="q", who="cyril", dur=1.7, bg_t=22.6, text="AUCUNE {APPRÉHENSION} ?"),
+     dict(kind="dialog", who="cyril", vin=24.86, vout=26.66, text="Non, on va encore gagner."),
+     dict(kind="dialog", who="cyril", vin=27.56, vout=28.72, text="On va y aller sereinement.")],
+    # 4 — Geoffroy
+    [dict(kind="video", src="3 ECH", tin=2.1, dur=4.2, speed=0.5, amb=-20,
+          gfx=[dict(type="card", t0=0.3, t1=4.2, name="GEOFFROY", info="Poste 3-4 · Cergy U21 · 2006")]),
+     dict(kind="q", who="geoffroy", dur=2.4, bg_t=0.3,
+          text="LES {U21} MÉRITENT-ILS PLUS DE {VISIBILITÉ} ?"),
+     dict(kind="dialog", who="geoffroy", vin=3.82, vout=6.78, text="Oui, totalement. C'est une catégorie assez importante.",
+          broll=dict(src="3 ECH", tin=0.6, zoom=(1.3, 0.45, 0.5))),
+     dict(kind="dialog", who="geoffroy", vin=7.46, vout=9.98, text="Il y a du niveau, notamment dans la région, en Île-de-France."),
+     dict(kind="dialog", who="geoffroy", vin=10.72, vout=13.36, text="C'est une catégorie qui doit être mise plus en avant."),
+     dict(kind="dialog", who="geoffroy", vin=19.06, vout=21.90, text="Même ceux qui sont en U18 ne veulent pas venir en U21, alors que c'est une très bonne catégorie."),
+     dict(kind="dialog", who="geoffroy", vin=22.44, vout=23.96, text="C'est un vrai tremplin vers les seniors.")],
+    # 5 — Marwin
+    [dict(kind="video", src="3 ECH", tin=4.2, dur=4.3, speed=0.5, amb=-20,
+          gfx=[dict(type="card", t0=0.3, t1=4.3, name="MARWIN", info="Poste 1-2 · Cergy · 2008")]),
+     dict(kind="q", who="marwin", dur=2.2, bg_t=0.1, text="TES {OBJECTIFS} POUR ALLER CHERCHER LA {VICTOIRE} ?"),
+     dict(kind="dialog", who="marwin", vin=3.76, vout=5.56, text="Mettre de l'intensité, des dunks,"),
+     dict(kind="dialog", who="marwin", vin=5.56, vout=8.42, text="des crosses, taffer tout le monde et prendre du plaisir.")],
+    # 6 — Coach
+    [dict(kind="q", who="coach", dur=2.4, bg_t=1.0, text="DES {ATTENTES} PAR RAPPORT À TON {ÉQUIPE} ?"),
+     dict(kind="dialog", who="coach", vin=3.92, vout=6.98, text="Oui, qu'ils aient une bonne mentalité, la mentalité de gagner.",
+          gfx=[dict(type="card", t0=0.15, t1=3.0, name="COACH", info="Coach de Cergy")]),
+     dict(kind="dialog", who="coach", vin=9.24, vout=11.14, text="On a gagné l'année dernière, il faut qu'on gagne cette année."),
+     dict(kind="dialog", who="coach", vin=11.56, vout=13.24, text="Il faut qu'on prouve qu'on est la meilleure équipe du Val-d'Oise."),
+     dict(kind="q", who="coach", dur=2.0, bg_t=13.8, text="DES {APPRÉHENSIONS}, APRÈS LE {TITRE} ?"),
+     dict(kind="dialog", who="coach", vin=17.46, vout=21.88, text="Au vu du niveau de l'année dernière, je pense qu'il va y avoir du niveau cette année."),
+     dict(kind="dialog", who="coach", vin=23.98, vout=25.76, text="Oui, ça va s'élever. Maintenant, j'ai des joueurs différents aussi."),
+     dict(kind="dialog", who="coach", vin=27.30, vout=28.56, text="À nous de tout donner.")],
+    # 7 — Dan + Dan Tir
+    [dict(kind="q", who="dan", dur=2.2, bg_t=1.0, text="LA PLUS GRANDE {FORCE} DE L'ÉQUIPE ?"),
+     dict(kind="dialog", who="dan", vin=5.46, vout=7.44, text="La plus grande force, c'est la défense.",
+          gfx=[dict(type="card", t0=0.15, t1=4.0, name="DAN", info="Joueur · Cergy · 2008")]),
+     dict(kind="dialog", who="dan", vin=7.48, vout=8.96, text="On est soudés en défense."),
+     dict(kind="dialog", who="dan", vin=9.16, vout=10.98, text="Pour moi, c'est le plus important."),
+     dict(kind="video", src="DAN TIR", tin=0.3, dur=1.0, amb=-14),
+     dict(kind="video", src="DAN TIR", tin=1.3, dur=4.4, speed=0.5, amb=-18, kb=(1.0, 1.15)),
+     dict(kind="video", src="DAN TIR", tin=3.5, dur=1.7, amb=-14)],
+    # 8 — Abdou (voice-over zone)
+    [dict(kind="video", src="Abou live", tin=1.6, dur=5.0, amb=-20, vo=True,
+          gfx=[dict(type="sentence", t0=1.0, t1=4.6, text="ABDOU, JOUEUR DE {CERGY}")]),
+     dict(kind="video", src="Abou live 2", tin=0.0, dur=5.6, speed=0.5, amb=-20, vo=True,
+          gfx=[dict(type="title", t0=0.3, t1=5.4, main="À SUIVRE · WINTER SERIES", sub="")]),
+     dict(kind="video", src="Abou live 2", tin=5.0, dur=3.9, amb=-20, vo=True,
+          gfx=[dict(type="card", t0=0.0, t1=3.9, name="ABDOU", info="Poste 1-2 · Cergy", extra="Demi-finaliste 2025 avec La Grinta"),
+               dict(type="sentence", t0=0.5, t1=3.7, text="{POSTE 1-2}")]),
+     dict(kind="video", src="Abou 1", tin=3.0, dur=3.4, amb=-20, vo=True,
+          gfx=[dict(type="sentence", t0=0.2, t1=3.4, text="L'AN DERNIER, IL A ATTEINT LES {DEMI-FINALES} AVEC {LA GRINTA}")]),
+     dict(kind="video", src="Abou 1", tin=15.6, dur=4.4, speed=0.5, amb=-20, vo=True,
+          gfx=[dict(type="sentence", t0=0.4, t1=4.2, text="CETTE ANNÉE, C'EST UN {JOUEUR À SUIVRE} SUR LA WINTER SERIES")]),
+     dict(kind="video", src="Abou 2", tin=2.4, dur=4.2, speed=0.5, amb=-20, vo=True),
+     dict(kind="video", src="Abou 2", tin=5.0, dur=2.3, amb=-20, vo=True, kb=(1.0, 1.12),
+          gfx=[dict(type="sentence", t0=-1.0, t1=2.3, text="RENDEZ-VOUS LE {20 DÉCEMBRE}")])],
+    # 9 — outro
+    [dict(kind="black", dur=4.6, gfx=[dict(type="logo_big", t0=0.0, t1=4.6, outro=True)], music="outro")],
+]
+
+QUESTION_LABEL = "LA QUESTION"
