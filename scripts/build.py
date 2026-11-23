@@ -766,7 +766,7 @@ def main(mode):
         print("render final A..."); render(True, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL.mp4")
         print("render final B..."); render(True, gfx, subs, dips, total, f"{B}/mix_b.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL_sans_musique_Sidy_Abdou.mp4")
     else:
-        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V5_preview.mp4")
+        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V6_preview.mp4")
     print("done")
 
 
