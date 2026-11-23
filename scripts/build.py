@@ -71,6 +71,7 @@ def build_timeline():
                 else:
                     br = sh["broll"]
                     sh.update(src=br["src"], tin=br["tin"], zoom=br.get("zoom"), speed=br.get("speed", 1))
+                    if br.get("band"): sh["band"] = br["band"]
                 dialog.append(dict(who=who, vin=sh["vin"], vout=sh["vout"], at=t, text=sh["text"]))
                 sh["amb"] = -30  # room tone under the voice, smooths the cuts
             elif sh["kind"] == "q":
@@ -110,6 +111,15 @@ def shot_filter(sh):
         return None
     info = probe(sh["src"])
     sw, shh = info["w"], info["h"]
+    if sh.get("band"):
+        # landscape footage (phone screen recording): sharp 16:9 band centred on a blurred fill
+        x, y, w, h = sh["band"]
+        fh = even(W * h / w)
+        sp = sh.get("speed", 1)
+        return (f"crop={w}:{h}:{x}:{y},fps={FPS},split[a][b];"
+                f"[a]scale=-2:{H}:flags=bicubic,crop={W}:{H},gblur=sigma=30,eq=brightness=-0.18:saturation=0.8[bg];"
+                f"[b]scale={W}:{fh}:flags=lanczos,unsharp=5:5:0.8,{GRADE}[fg];"
+                f"[bg][fg]overlay=0:(H-h)/2,format=yuv420p")
     fc = []
     if sh.get("delogo"):
         x, y, w, h = sh["delogo"]
@@ -756,7 +766,7 @@ def main(mode):
         print("render final A..."); render(True, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL.mp4")
         print("render final B..."); render(True, gfx, subs, dips, total, f"{B}/mix_b.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL_sans_musique_Sidy_Abdou.mp4")
     else:
-        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V3_preview.mp4")
+        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V4_preview.mp4")
     print("done")
 
 
