@@ -28,6 +28,13 @@ ZOOMS = {
 }
 FACE_ANCHOR = 0.33  # face at 1/3 from the top of the frame
 
+# Sidy voice-over: (clip in, clip out) in vo/sidy.m4a -> start offset from the beginning of the Sidy shot
+VO_SIDY = [
+    (0.80, 4.70, 1.44),    # "Dans cette équipe, il y a un joueur à surveiller de près, c'est Sidy."
+    (5.50, 10.40, 5.81),   # "Il a fini MVP de la saison dernière et il évolue avec Cergy..."
+    (10.60, 12.40, 10.72), # "Et cette année, il compte bien remettre ça."
+]
+
 # Abdou voice-over: (clip in, clip out) in vo/abdou.m4a -> start offset from the beginning of the Abdou part
 VO_ABDOU = [
     (0.55, 4.55, 0.70),    # "Il y a aussi un autre nom à retenir, celui d'Abdou..."
@@ -67,8 +74,8 @@ PARTS = [
      dict(kind="video", src="SIDY TOMAR", tin=0.0, dur=6.4, amb=-20, lowres=True, kb=(1.0, 1.12), vo=True,
           delogo=(170, 988, 382, 100),
           gfx=[dict(type="card", t0=0.0, t1=6.4, name="SIDY", info="MVP 2025", instant=True)]),
-     dict(kind="video", src="SIDY PHOTO", tin=0.0, dur=4.2, amb=None, kb=(1.0, 1.08), vo=True,
-          gfx=[dict(type="title_top", t0=0.25, t1=4.0, main="MVP DE LA SAISON PASSÉE", sub="", y=1560)])],
+     dict(kind="video", src="SIDY PHOTO", tin=0.0, dur=6.3, amb=None, kb=(1.0, 1.10), vo=True,
+          gfx=[dict(type="title_top", t0=0.25, t1=6.1, main="MVP DE LA SAISON PASSÉE", sub="", y=1560)])],
     # 3 — Cyril
     [dict(kind="video", src="3 ECH", tin=0.0, dur=1.5, amb=-20),
      dict(kind="video", src="DUNK CYRIL", tin=0.0, dur=3.3, amb=-16, bright=0.05),

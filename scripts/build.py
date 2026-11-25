@@ -397,6 +397,15 @@ def build_audio(shots, dialog, zones, total):
     for a, b2, off in TL.VO_ABDOU:
         x = load_audio(vo_path, a, b2 - a)
         place(dia, fade(x, 0.03, 0.06), abd0 + off)
+    # Sidy voice-over
+    sidy0 = min(z[0] for z in zones)
+    vo_s = f"{B}/vo_sidy.wav"
+    if not os.path.exists(vo_s):
+        run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{ROOT}/vo/sidy.m4a", "-af",
+             "highpass=f=70,loudnorm=I=-16:TP=-2:LRA=7", "-ar", str(SR), "-ac", "1", vo_s])
+    for a, b2, off in TL.VO_SIDY:
+        x = load_audio(vo_s, a, b2 - a)
+        place(dia, fade(x, 0.03, 0.06), sidy0 + off)
     # ambience from rushes
     for sh in shots:
         if sh["kind"] == "black" or sh.get("amb") is None:
