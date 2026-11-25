@@ -77,8 +77,7 @@ PARTS = [
      dict(kind="video", src="SIDY PHOTO", tin=0.0, dur=6.3, amb=None, kb=(1.0, 1.10), vo=True,
           gfx=[dict(type="title_top", t0=0.25, t1=6.1, main="MVP DE LA SAISON PASSÉE", sub="", y=1560)])],
     # 3 — Cyril
-    [dict(kind="video", src="3 ECH", tin=0.0, dur=1.5, amb=-20),
-     dict(kind="video", src="DUNK CYRIL", tin=0.0, dur=3.3, amb=-16, bright=0.05),
+    [dict(kind="video", src="DUNK CYRIL", tin=0.0, dur=3.3, amb=-16, bright=0.05),
      dict(kind="video", src="CYRIL RUSH", tin=0.3, dur=3.6, amb=-24, kb=(1.0, 1.06), zoom=(1.15, 0.5, 0.45),
           gfx=[dict(type="card", t0=0.25, t1=3.6, name="CYRIL", info="Poste 1-2 · Cergy N2 · 2008")]),
      dict(kind="q", who="cyril", dur=2.4, bg_t=0.2,

@@ -154,9 +154,14 @@ def shot_filter(sh):
     return ",".join(fc)
 
 
+def shot_key(sh, crf):
+    return json.dumps({k: v for k, v in sh.items() if k not in ("gfx", "start")}, sort_keys=True, default=str) + f"crf{crf}"
+
+
 def render_shot(i, sh, crf):
-    out = f"{B}/shots/{i:03d}.mkv"
-    key = json.dumps({k: v for k, v in sh.items() if k not in ("gfx", "start")}, sort_keys=True, default=str) + f"crf{crf}"
+    import hashlib
+    key = shot_key(sh, crf)
+    out = f"{B}/shots/s_{hashlib.sha1(key.encode()).hexdigest()[:16]}.mkv"
     if os.path.exists(out) and os.path.exists(out + ".key") and open(out + ".key").read() == key:
         return out
     n = sh["n"] + (XF if sh.get("xf") else 0)
