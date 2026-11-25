@@ -12,20 +12,32 @@ RUSH = {
 OFF = {"cyril": -1.348, "geoffroy": -4.744, "marwin": -0.941, "coach": 0.222, "dan": 0.544}
 # speaker position in the frame (normalized x, y of the face) for punch-ins
 FACE = {
-    "cyril": (0.42, 0.50),
-    "geoffroy": (0.27, 0.34),
-    "marwin": (0.55, 0.51),
-    "coach": (0.40, 0.54),
-    "dan": (0.69, 0.51),
+    "cyril": (0.42, 0.515),
+    "geoffroy": (0.27, 0.335),
+    "marwin": (0.55, 0.52),
+    "coach": (0.40, 0.555),
+    "dan": (0.69, 0.515),
 }
-# zoom cycle for punch-ins (alternates on every cut)
+# medium framings only (bottom of frame between the knees and the waist), alternating on every cut
 ZOOMS = {
-    "cyril": [1.0, 1.7, 1.35, 2.0],
-    "geoffroy": [1.0, 1.3, 1.15, 1.45],
-    "marwin": [1.0, 1.7, 2.0],
-    "coach": [1.0, 1.6, 1.3, 2.0],
-    "dan": [1.0, 1.7, 1.35],
+    "cyril": [2.35, 3.0],
+    "geoffroy": [1.35, 2.1],
+    "marwin": [2.4, 3.0],
+    "coach": [2.6, 3.0],
+    "dan": [2.15, 3.0],
 }
+FACE_ANCHOR = 0.33  # face at 1/3 from the top of the frame
+
+# Abdou voice-over: (clip in, clip out) in vo/abdou.m4a -> start offset from the beginning of the Abdou part
+VO_ABDOU = [
+    (0.55, 4.55, 0.70),    # "Il y a aussi un autre nom à retenir, celui d'Abdou..."
+    (5.00, 7.75, 5.60),    # "C'est un profil qui monte..."
+    (8.10, 10.50, 10.40),  # "C'est un poste 1-2, meneur, arrière,"
+    (10.50, 13.50, 13.83), # "et l'année dernière... La Grinta."
+    (13.60, 16.10, 17.40), # "Cette année, c'est un joueur à suivre sur la Winter Series,"
+    (16.10, 17.80, 21.80), # "et Cergy remet son titre en jeu."
+    (17.85, 20.00, 24.80), # "Rendez-vous le 20 décembre, à Groslay."
+]
 
 GOLD_WORDS = {
     "95", "GAGNER", "U21", "U18", "TREMPLIN", "SENIORS", "DÉFENSE", "SOUDÉS", "DUNKS",

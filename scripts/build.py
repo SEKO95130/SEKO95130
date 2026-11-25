@@ -67,7 +67,7 @@ def build_timeline():
                 if "broll" not in sh:
                     k = zoom_i.get(who, 0); zoom_i[who] = k + 1
                     z = TL.ZOOMS[who][k % len(TL.ZOOMS[who])]
-                    sh.update(src=TL.RUSH[who], tin=sh["vin"] + TL.OFF[who], zoom=(z, *TL.FACE[who]))
+                    sh.update(src=TL.RUSH[who], tin=sh["vin"] + TL.OFF[who], zoom=(z, *TL.FACE[who]), anchor=TL.FACE_ANCHOR)
                 else:
                     br = sh["broll"]
                     sh.update(src=br["src"], tin=br["tin"], zoom=br.get("zoom"), speed=br.get("speed", 1))
@@ -129,7 +129,7 @@ def shot_filter(sh):
     if ch > shh:
         ch = shh; cw = ch * 9 / 16
     x = min(max(cx * sw - cw / 2, 0), sw - cw)
-    y = min(max(cy * shh - ch * 0.40, 0), shh - ch)
+    y = min(max(cy * shh - ch * sh.get("anchor", 0.40), 0), shh - ch)
     if z > 1.001 or abs(cw - sw) > 2 or abs(ch - shh) > 2:
         fc.append(f"crop={even(cw)}:{even(ch)}:{even(x)}:{even(y)}")
     if info["hdr"]:
@@ -375,7 +375,7 @@ def make_music(total, sections):
     fi = int(0.8 * SR); mix[:fi] *= np.linspace(0, 1, fi)[:, None]
     end = int(total * SR); fo = int(2.5 * SR)
     mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None]; mix[end:] = 0
-    return mix[: int(total * SR) + SR] * db(-18)  # ~ -20 LUFS bed
+    return mix[: int(total * SR) + SR] * db(-23)  # music bed, kept low under the voices
 
 
 def build_audio(shots, dialog, zones, total):
@@ -388,6 +388,15 @@ def build_audio(shots, dialog, zones, total):
         cin = prev and prev["who"] == d["who"] and abs(prev["vout"] - d["vin"]) < 0.01 and abs(prev["at"] + prev["vout"] - prev["vin"] - d["at"]) < 0.05
         cout = nxt and nxt["who"] == d["who"] and abs(nxt["vin"] - d["vout"]) < 0.01 and abs(d["at"] + d["vout"] - d["vin"] - nxt["at"]) < 0.05
         place(dia, fade(x, 0.003 if cin else 0.05, 0.003 if cout else 0.08), d["at"])
+    # Abdou voice-over
+    abd0 = min(z[0] for z in zones if z[0] > 60)
+    vo_path = f"{B}/vo_abdou.wav"
+    if not os.path.exists(vo_path):
+        run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{ROOT}/vo/abdou.m4a", "-af",
+             "highpass=f=70,loudnorm=I=-16:TP=-2:LRA=7", "-ar", str(SR), "-ac", "1", vo_path])
+    for a, b2, off in TL.VO_ABDOU:
+        x = load_audio(vo_path, a, b2 - a)
+        place(dia, fade(x, 0.03, 0.06), abd0 + off)
     # ambience from rushes
     for sh in shots:
         if sh["kind"] == "black" or sh.get("amb") is None:
@@ -413,7 +422,7 @@ def build_audio(shots, dialog, zones, total):
     g = np.zeros_like(act); s = 0
     for i, v in enumerate(act):
         s = s + (v - s) * (0.17 if v > s else 0.025); g[i] = s
-    duck = 1 - g * (1 - db(-13))
+    duck = 1 - g * (1 - db(-14))
     duck = np.repeat(duck, hop)[:n][:, None]
     # voice-over zones: music a bit lower (version A), music removed (version B)
     vo_mask = np.zeros(n)
@@ -766,7 +775,7 @@ def main(mode):
         print("render final A..."); render(True, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL.mp4")
         print("render final B..."); render(True, gfx, subs, dips, total, f"{B}/mix_b.wav", f"{out_dir}/HOUSE_Cergy_interview_FINAL_sans_musique_Sidy_Abdou.mp4")
     else:
-        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V6_preview.mp4")
+        print("render preview..."); render(False, gfx, subs, dips, total, f"{B}/mix_a.wav", f"{out_dir}/HOUSE_Cergy_interview_V7_preview.mp4")
     print("done")
 
 
