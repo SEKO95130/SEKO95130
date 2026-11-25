@@ -77,7 +77,7 @@ def build_timeline():
             elif sh["kind"] == "q":
                 who = sh["who"]
                 sh.update(src=TL.RUSH[who], tin=max(0.0, sh["bg_t"] + TL.OFF[who]), blur=True,
-                          zoom=(1.0, *TL.FACE[who]), amb=-30)
+                          zoom=(1.0, *TL.FACE[who]), amb=-24)
                 gfx.append(dict(type="question", t0=t, t1=t + sh["dur"], text=sh["text"]))
             n = nframes(sh["dur"])
             sh["n"] = n
@@ -397,6 +397,13 @@ def build_audio(shots, dialog, zones, total):
     for a, b2, off in TL.VO_ABDOU:
         x = load_audio(vo_path, a, b2 - a)
         place(dia, fade(x, 0.03, 0.06), abd0 + off)
+    # intro voice-over (over the logo and the Maradas gym title)
+    vo_i = f"{B}/vo_intro.wav"
+    if not os.path.exists(vo_i):
+        run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{ROOT}/vo/intro.m4a", "-af",
+             "highpass=f=70,loudnorm=I=-16:TP=-2:LRA=7", "-ar", str(SR), "-ac", "1", vo_i])
+    x = load_audio(vo_i, 0.95, 9.30 - 0.95)
+    place(dia, fade(x, 0.03, 0.08), 0.20)
     # Sidy voice-over
     sidy0 = min(z[0] for z in zones)
     vo_s = f"{B}/vo_sidy.wav"
@@ -742,7 +749,13 @@ def frames(gfx, subs, dips, total):
 
 # ---------------------------------------------------------------- final render
 def render(final, gfx, subs, dips, total, audio_path, out, nomusic_audio=None):
-    if final:
+    if final == "pub":
+        # publication master: high quality but capped so the file stays under ~90 MB (downloadable, fits GitHub)
+        venc = ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-maxrate", "4000k", "-bufsize", "8000k",
+                "-profile:v", "high", "-level", "4.2", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+                "-c:a", "aac", "-b:a", "192k"]
+        vf = "[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[v]"
+    elif final:
         venc = ["-c:v", "libx264", "-preset", "slow", "-crf", "14", "-profile:v", "high", "-level", "4.2",
                 "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-c:a", "aac", "-b:a", "320k"]
         vf = "[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[v]"
@@ -768,6 +781,16 @@ def main(mode):
     print(f"timeline {total:.2f}s, {len(shots)} shots")
     json.dump(dict(shots=[{k: v for k, v in s.items() if k != 'gfx'} for s in shots], dips=dips, zones=zones, total=total),
               open(f"{B}/timeline.json", "w"), indent=1, default=str)
+    if mode == "publication":
+        print("shots..."); render_shots(shots, 8)
+        print("audio (no music)...")
+        dia, amb, mus_a, mus_b, n = build_audio(shots, dialog, zones, total)
+        write_wav(f"{B}/mix_pub_raw.wav", dia + amb)
+        loudnorm_file(f"{B}/mix_pub_raw.wav", f"{B}/mix_pub.wav")
+        subs = subtitle_events(dialog)
+        out = "/home/user/SEKO95130/livrables/HOUSE_Cergy_interview_PUBLICATION.mp4"
+        print("render publication..."); render("pub", gfx, subs, dips, total, f"{B}/mix_pub.wav", out)
+        print("done"); return
     final = mode == "final"
     print("shots..."); render_shots(shots, 12 if not final else 8)
     print("audio...")
