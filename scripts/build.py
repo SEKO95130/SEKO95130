@@ -6,7 +6,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(__file__))
-import timeline as TL
+import importlib
+TL = importlib.import_module(os.environ.get("TIMELINE", "timeline"))
 
 W, H, FPS = 1080, 1920, 30
 ROOT = "/home/user/work"
@@ -383,16 +384,7 @@ def make_music(total, sections):
     return mix[: int(total * SR) + SR] * db(-23)  # music bed, kept low under the voices
 
 
-def build_audio(shots, dialog, zones, total):
-    n = int((total + 1) * SR)
-    dia = np.zeros((n, 2)); amb = np.zeros((n, 2))
-    # dialog
-    for i, d in enumerate(dialog):
-        x = load_audio(voice_norm(d["who"]), d["vin"], d["vout"] - d["vin"])
-        prev = dialog[i - 1] if i else None; nxt = dialog[i + 1] if i + 1 < len(dialog) else None
-        cin = prev and prev["who"] == d["who"] and abs(prev["vout"] - d["vin"]) < 0.01 and abs(prev["at"] + prev["vout"] - prev["vin"] - d["at"]) < 0.05
-        cout = nxt and nxt["who"] == d["who"] and abs(nxt["vin"] - d["vout"]) < 0.01 and abs(d["at"] + d["vout"] - d["vin"] - nxt["at"]) < 0.05
-        place(dia, fade(x, 0.003 if cin else 0.05, 0.003 if cout else 0.08), d["at"])
+def legacy_voiceovers(dia, zones):
     # Abdou voice-over
     abd0 = min(z[0] for z in zones if z[0] > 60)
     vo_path = f"{B}/vo_abdou.wav"
@@ -418,6 +410,30 @@ def build_audio(shots, dialog, zones, total):
     for a, b2, off in TL.VO_SIDY:
         x = load_audio(vo_s, a, b2 - a)
         place(dia, fade(x, 0.03, 0.06), sidy0 + off)
+
+
+def build_audio(shots, dialog, zones, total):
+    n = int((total + 1) * SR)
+    dia = np.zeros((n, 2)); amb = np.zeros((n, 2))
+    # dialog
+    for i, d in enumerate(dialog):
+        x = load_audio(voice_norm(d["who"]), d["vin"], d["vout"] - d["vin"])
+        prev = dialog[i - 1] if i else None; nxt = dialog[i + 1] if i + 1 < len(dialog) else None
+        cin = prev and prev["who"] == d["who"] and abs(prev["vout"] - d["vin"]) < 0.01 and abs(prev["at"] + prev["vout"] - prev["vin"] - d["at"]) < 0.05
+        cout = nxt and nxt["who"] == d["who"] and abs(nxt["vin"] - d["vout"]) < 0.01 and abs(d["at"] + d["vout"] - d["vin"] - nxt["at"]) < 0.05
+        place(dia, fade(x, 0.003 if cin else 0.05, 0.003 if cout else 0.08), d["at"])
+    if hasattr(TL, "VOICEOVERS"):
+        # generic voice-overs: (file name in vo/, clip in, clip out, shot id, offset from that shot's start)
+        starts = {sh.get("id"): sh["start"] for sh in shots if sh.get("id")}
+        for name, ca, cb, sid, off in TL.VOICEOVERS:
+            p = f"{B}/vo_{name}.wav"
+            if not os.path.exists(p):
+                run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{ROOT}/vo/{name}.m4a", "-af",
+                     "highpass=f=70,loudnorm=I=-16:TP=-2:LRA=7", "-ar", str(SR), "-ac", "1", p])
+            x = load_audio(p, ca, cb - ca)
+            place(dia, fade(x, 0.03, 0.08), (starts[sid] if sid else 0) + off)
+    else:
+        legacy_voiceovers(dia, zones)
     # ambience from rushes
     for sh in shots:
         if sh["kind"] == "black" or sh.get("amb") is None:
@@ -429,8 +445,8 @@ def build_audio(shots, dialog, zones, total):
     # loudness-normalize ambience chunks roughly: rush audio is ~ -18 dB mean already
     # music sections
     first_main = shots[1]["start"] + shots[1]["n"] / FPS  # main beat starts at WIN CERGY
-    abd = min(z[0] for z in zones if z[0] > 60)
     outro = shots[-1]["start"]
+    abd = min([z[0] for z in zones if z[0] > 60] or [outro])
     secs = [(0, "intro"), (first_main, "main"), (abd, "calm"), (outro, "outro")]
     mus = make_music(total, secs)
     mus = np.pad(mus, ((0, max(0, n - len(mus))), (0, 0)))[:n]
@@ -793,7 +809,7 @@ def main(mode):
         write_wav(f"{B}/mix_pub_raw.wav", dia + amb)
         loudnorm_file(f"{B}/mix_pub_raw.wav", f"{B}/mix_pub.wav")
         subs = subtitle_events(dialog)
-        out = "/home/user/SEKO95130/livrables/HOUSE_Cergy_interview_PUBLICATION.mp4"
+        out = "/home/user/SEKO95130/livrables/" + os.environ.get("OUT", "HOUSE_Cergy_interview_PUBLICATION.mp4")
         print("render publication..."); render("pub", gfx, subs, dips, total, f"{B}/mix_pub.wav", out)
         print("done"); return
     final = mode == "final"
